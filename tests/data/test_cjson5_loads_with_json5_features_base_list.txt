@@ -1,0 +1,7 @@
+// This is a line comment!
+/*
+    Block comment!
+*/
+[
+
+]

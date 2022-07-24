@@ -1,0 +1,6 @@
+.idea
+dist
+cmake-build-info
+cjson5.egg-info
+build
+cmake-build-debug
