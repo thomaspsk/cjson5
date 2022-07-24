@@ -194,6 +194,7 @@ PyMODINIT_FUNC PyInit_cjson5(void) {
 #endif
 
 int main(int argc, char* argv[]) {
+    // TODO: Use a proper unit testing library
     char json[] = "// This is a line comment!\n"
                   "/*\n"
                   "    Block comment!\n"
