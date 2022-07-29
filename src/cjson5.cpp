@@ -19,6 +19,13 @@ enum states {
     _closeDict,
     _openList,
     _closeList,
+    _openDoubleQuoteKey,
+    _closeDoubleQuoteKey,
+    _openSingleQuoteKey,
+    _closeSingleQuoteKey,
+    _openUnquotedKey,
+    _closeUnquotedKey,
+    _keyValueSeparator,
 //    _openDict,
 //    _closeDict,
 //    _openList,
@@ -123,8 +130,25 @@ string parseJSON(char *s) {
             } else if (c == '/') {
                 state = _comment;
                 continue;
+            } else if (c == '"') {
+                state = _openDoubleQuoteKey;
+                stateStack.push(state);
+                cleaned.push_back(c);
+                continue;
+            } else if (c == '\'') {
+                state = _openSingleQuoteKey;
+                stateStack.push(state);
+                cleaned.push_back('"');
+                continue;
+            } else if (isAlphanumeric(c)) {
+                state = _openUnquotedKey;
+                stateStack.push(state);
+                cleaned.push_back('"');
+                cleaned.push_back(c);
+                continue;
+            } else {
+                throw "Invalid transition";
             }
-            // TODO: So much more
         } else if (state == _closeDict) {
             if (isWhitespace(c)) {
                 continue;
@@ -144,6 +168,82 @@ string parseJSON(char *s) {
         } else if (state == _closeList) {
             if (isWhitespace(c)) {
                 continue;
+            }
+        } else if (state == _openDoubleQuoteKey) {
+            if (isAlphanumeric(c)) {
+                cleaned.push_back(c);
+                continue;
+            } else if (c == '"') {
+                state = _closeDoubleQuoteKey;
+                stateStack.push(state);
+                cleaned.push_back(c);
+            } else {
+                throw "Invalid transition";
+            }
+        } else if (state == _closeDoubleQuoteKey) {
+            if (isWhitespace(c)) {
+                continue;
+            } else if (c == ':') {
+                state = _keyValueSeparator;
+                stateStack.push(state);
+                cleaned.push_back(':');
+            } else {
+                throw "Invalid transition";
+            }
+        } else if (state == _openSingleQuoteKey) {
+            if (isAlphanumeric(c)) {
+                cleaned.push_back(c);
+                continue;
+            } else if (c == '\'') {
+                state = _closeSingleQuoteKey;
+                stateStack.push(state);
+                cleaned.push_back('"');
+            } else {
+                throw "Invalid transition";
+            }
+        } else if (state == _closeSingleQuoteKey) {
+            if (isWhitespace(c)) {
+                continue;
+            } else if (c == ':') {
+                state = _keyValueSeparator;
+                stateStack.push(state);
+                cleaned.push_back(':');
+            } else {
+                throw "Invalid transition";
+            }
+        } else if (state == _openUnquotedKey) {
+            if (isAlphanumeric(c)) {
+                cleaned.push_back(c);
+                continue;
+            } else if (isWhitespace(c)) {
+                state = _closeUnquotedKey;
+                stateStack.push(state);
+                cleaned.push_back('"');
+                continue;
+            } else if (c == ':') {
+                state = _keyValueSeparator;
+                stateStack.push(state);
+                cleaned.push_back('"');
+                cleaned.push_back(':');
+                continue;
+            } else {
+                throw "Invalid transition";
+            }
+        } else if (state == _closeUnquotedKey) {
+            if (isWhitespace(c)) {
+                continue;
+            } else if (c == ':') {
+                state = _keyValueSeparator;
+                stateStack.push(state);
+                cleaned.push_back(':');
+            } else {
+                throw "Invalid transition";
+            }
+        } else if (state == _keyValueSeparator) {
+            if (isWhitespace(c)) {
+                continue;
+            } if (isNumeric(c)) {
+                // TODO: Support all the value types
             }
         }
     }
